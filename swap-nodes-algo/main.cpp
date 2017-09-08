@@ -84,28 +84,60 @@ void swap_bfs(node_sp& root, int level) {
     } while(1);
 }
 
-void printLevelOrder(const node_sp& root) {
-    if (!root) return;
-    queue<node_sp> nodesQueue;
-    int nodesInCurrentLevel = 1;
-    int nodesInNextLevel = 0;
-    nodesQueue.push(root);
-    while (!nodesQueue.empty()) {
-        node_sp currNode = nodesQueue.front();
-        nodesQueue.pop();
-        nodesInCurrentLevel--;
-        if (currNode) {
-            cout << currNode->data << " ";
-            nodesQueue.push(currNode->children[0]);
-            nodesQueue.push(currNode->children[1]);
-            nodesInNextLevel += 2;
-        }
-        if (nodesInCurrentLevel == 0) {
-            cout << endl;
-            nodesInCurrentLevel = nodesInNextLevel;
-            nodesInNextLevel = 0;
-        }
+struct Trunk
+{
+    Trunk *prev;
+    string str;
+
+    Trunk(Trunk *prev, string str)
+    {
+        this->prev = prev;
+        this->str = str;
     }
+};
+
+// Helper function to print branches of the binary tree
+void showTrunks(Trunk *p)
+{
+    if (p == nullptr)
+        return;
+
+    showTrunks(p->prev);
+
+    cout << p->str;
+}
+
+void printTree(const node_sp& root, Trunk *prev, bool isLeft)
+{
+    if (root == nullptr)
+        return;
+
+    string prev_str = "	";
+    Trunk *trunk = new Trunk(prev, prev_str);
+
+    printTree(root->children[0], trunk, true);
+
+    if (!prev)
+        trunk->str = "---";
+    else if (isLeft)
+    {
+        trunk->str = ".---";
+        prev_str = "   |";
+    }
+    else
+    {
+        trunk->str = "`---";
+        prev->str = prev_str;
+    }
+
+    showTrunks(trunk);
+    cout << root->data << endl;
+
+    if (prev)
+        prev->str = prev_str;
+    trunk->str = "   |";
+
+    printTree(root->children[1], trunk, false);
 }
 
 int main() {
@@ -136,7 +168,7 @@ int main() {
     build_tree(root, nodes, 1);
 
     for (const auto &k : K) {
-        printLevelOrder(root);
+        printTree(root, nullptr, false);
         swap_bfs(root, k);
         cout << endl;
     }
