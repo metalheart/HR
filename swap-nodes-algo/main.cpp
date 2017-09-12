@@ -38,38 +38,49 @@ struct node {
     node_sp children[2];
 };
 
-void build_tree(node_sp& root, std::list<std::pair<int,int>>& nodes, int level) {
-    if (nodes.empty()) {
-        return;
-    }
-
-    const std::pair<int, int> n = nodes.front();
-    nodes.pop_front();
-
-    if (n.first >= 0) {
-        root->children[node::Left] = make_shared<node>(n.first);
-        root->children[node::Left]->level = level + 1;
-        build_tree(root->children[node::Left], nodes, level + 1);
-    }
-    if (n.second >= 0) {
-        root->children[node::Right] = make_shared<node>(n.second);
-        root->children[node::Right]->level = level + 1;
-        build_tree(root->children[node::Right], nodes, level + 1);
-    }
-
+void traverse_inorder(node_sp& root) {
+    if (!root) return;
+    traverse_inorder(root->children[0]);
+    std::cout << root->data << " ";
+    traverse_inorder(root->children[1]);
 }
 
-void swap_bfs(node_sp& root, int level) {
+void build_bfs(node_sp& root, std::list<std::pair<int,int>>& nodeIdexes, int& depth) {
+    list<node_sp> nodes = {root};
+
+    depth = 1;
+
+    while (!nodeIdexes.empty() && !nodes.empty()) {
+        list<node_sp> new_nodes;
+        for (auto& n : nodes) {
+            const auto &e = nodeIdexes.front();
+            nodeIdexes.pop_front();
+
+            if (e.first != -1) {
+                n->children[0] = std::make_shared<node>(e.first);
+                new_nodes.push_back(n->children[0]);
+            }
+            if (e.second != -1) {
+                n->children[1] = std::make_shared<node>(e.second);
+                new_nodes.push_back(n->children[1]);
+            }
+        }
+
+        depth += !new_nodes.empty();
+
+        nodes = new_nodes;
+    };
+}
+
+void swap_bfs(node_sp& root, int K) {
     int cur_level = 1;
     list<node_sp> nodes = {root};
 
     do {
-        if (level == cur_level) {
+        if ((cur_level % K) == 0) {
             for (const auto& n : nodes) {
                 std::swap(n->children[0], n->children[1]);
             }
-
-            break;
         }
 
         list<node_sp> new_nodes;
@@ -81,7 +92,7 @@ void swap_bfs(node_sp& root, int level) {
         nodes = new_nodes;
 
         ++ cur_level;
-    } while(1);
+    } while(!nodes.empty());
 }
 
 struct Trunk
@@ -149,13 +160,14 @@ int main() {
 
     int N;
     cin >> N;
-    std::list<std::pair<int,int>> nodes;
+    std::list<std::pair<int,int>> nodeIdexes;
+
     for (int i = 0; i < N; ++i) {
         std::pair<int,int> p;
         cin >> p.first;
         cin >> p.second;
 
-        nodes.push_back(p);
+        nodeIdexes.push_back(p);
     }
 
     int T;
@@ -165,11 +177,13 @@ int main() {
 
     node_sp root = make_shared<node>(1);
 
-    build_tree(root, nodes, 1);
+    int depth;
+    build_bfs(root, nodeIdexes, depth);
 
     for (const auto &k : K) {
-        printTree(root, nullptr, false);
+        //printTree(root, nullptr, false);
         swap_bfs(root, k);
+        traverse_inorder(root);
         cout << endl;
     }
 
