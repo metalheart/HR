@@ -23,7 +23,7 @@ struct node {
         Right = 1
     };
 
-    node() : node(0) {}
+    node() : node(-1) {}
     explicit node(int data) : data(data), level(1) {}
 
     bool is_leaf() const { return !left && !right; }
@@ -53,15 +53,15 @@ void build_bfs(node_sp& root, std::list<std::pair<int,int>>& nodeIdexes, int& de
     while (!nodeIdexes.empty() && !nodes.empty()) {
         list<node_sp> new_nodes;
         for (auto& n : nodes) {
-            const auto &e = nodeIdexes.front();
+            std::pair<int,int> vals = nodeIdexes.front();
             nodeIdexes.pop_front();
 
-            if (e.first != -1) {
-                n->children[0] = std::make_shared<node>(e.first);
+            if (vals.first != -1) {
+                n->children[0] = std::make_shared<node>(vals.first);
                 new_nodes.push_back(n->children[0]);
             }
-            if (e.second != -1) {
-                n->children[1] = std::make_shared<node>(e.second);
+            if (vals.second != -1) {
+                n->children[1] = std::make_shared<node>(vals.second);
                 new_nodes.push_back(n->children[1]);
             }
         }
@@ -76,7 +76,7 @@ void swap_bfs(node_sp& root, int K) {
     int cur_level = 1;
     list<node_sp> nodes = {root};
 
-    do {
+    while (!nodes.empty()) {
         if ((cur_level % K) == 0) {
             for (const auto& n : nodes) {
                 std::swap(n->children[0], n->children[1]);
@@ -92,7 +92,7 @@ void swap_bfs(node_sp& root, int K) {
         nodes = new_nodes;
 
         ++ cur_level;
-    } while(!nodes.empty());
+    };
 }
 
 struct Trunk
