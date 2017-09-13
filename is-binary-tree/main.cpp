@@ -7,25 +7,27 @@ The Node struct is defined as follows:
       Node* right;
    }
 */
-   void checkTree(Node* root, int value, bool isLeft, bool& ok) {
+   void checkTree(Node* root, int& min, int &max, bool& ok) {
        if (root) {
+           min = root->data < min ? root->data : min;
+           max = root->data > max ? root->data : max;
+           
+           int new_min = 1000000, new_max = 0;
+           
            if (root->left) {
-               if (root->data >= root->right->data) {
-                   ok = false;
-                   return;
-               } else {
-                   checkTree(root->right, root->data, false, ok);
-               }
+               checkTree(root->left, new_min, new_max, ok);
+               ok = ok && new_max < root->data;
+               
            }
            
-           if (root->right) { 
-               if (root->data <= root->left->data) {
-                   ok = false;
-                   return;
-               } else {
-                   checkTree(root->left, root->data, true, ok);
-               }
+           if (root->right) {
+               checkTree(root->right, new_min, new_max, ok);
+               ok = ok && new_max > root->data;
+           
            }
+
+           min = new_min < min ? new_min : min;
+           max = new_max > max ? new_max : max;
        }
    }
 
@@ -49,7 +51,8 @@ The Node struct is defined as follows:
        
        return true;*/
        bool ok = true;
-       checkTree(root, 0, ok);
+       int min = 10000000, max = 0;
+       checkTree(root, min, max, ok);
        return ok;
    }
 
