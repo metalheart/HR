@@ -7,52 +7,41 @@ The Node struct is defined as follows:
       Node* right;
    }
 */
-   void checkTree(Node* root, int& min, int &max, bool& ok) {
-       if (root) {
-           min = root->data < min ? root->data : min;
-           max = root->data > max ? root->data : max;
-           
-           int new_min = 1000000, new_max = 0;
-           
-           if (root->left) {
-               checkTree(root->left, new_min, new_max, ok);
-               ok = ok && new_max < root->data;
-               
-           }
-           
-           if (root->right) {
-               checkTree(root->right, new_min, new_max, ok);
-               ok = ok && new_max > root->data;
-           
-           }
+void check_r(Node* root, int &min, int &max, bool &result) {
+    min = root->data < min ? root->data : min;
+    max = root->data > max ? root->data : max;
+    if (root->left) {
+        int left_subtree_min = 100000, left_subtree_max = -100000;
+        check_r(root->left, left_subtree_min, left_subtree_max, result);
+        if (left_subtree_max >= root->data) {
+            result = false;
+            return;
+        }
 
-           min = new_min < min ? new_min : min;
-           max = new_max > max ? new_max : max;
-       }
-   }
 
-   bool checkBST(Node* root) {
-      /*std::list<Node*> nodes = {root};
-       while(!nodes.empty()) {
-           std::list<Node*> new_nodes;
-           for (const auto& n : nodes) {
-               if (n->left) {
-                   if (n->left->data > n->data) return false;
-                   new_nodes.push_back(n->left);
-               }
-               if (n->right) {
-                   if (n->right->data < n->data) return false;
-                   new_nodes.push_back(n->right);
-               }
-           }
-           
-           nodes = new_nodes;
-       }
-       
-       return true;*/
-       bool ok = true;
-       int min = 10000000, max = 0;
-       checkTree(root, min, max, ok);
-       return ok;
-   }
+        min = std::min(min, left_subtree_min);
+        min = std::min(min, left_subtree_max);
+        max = std::max(max, left_subtree_min);
+        max = std::max(max, left_subtree_max);
+    }
+    if (root->right) {
+        int right_subtree_min = 100000, right_subtree_max = -100000;
+        check_r(root->right, right_subtree_min, right_subtree_max, result);
+        if (right_subtree_min <= root->data) {
+            result = false;
+            return;
+        }
 
+        min = std::min(min, right_subtree_min);
+        min = std::min(min, right_subtree_max);
+        max = std::max(max, right_subtree_min);
+        max = std::max(max, right_subtree_max);
+    }
+}
+
+bool checkBST(Node* root) {
+    int subtree_min = 100000, subtree_max = -100000;
+    bool result = true;
+    check_r(root, subtree_min, subtree_max, result);
+    return result;
+}
